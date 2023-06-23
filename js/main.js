@@ -155,6 +155,9 @@
           }, 3000);
         // 次の課題へ
         } else {
+          this.colorBtns.forEach(colorBtn => {
+            colorBtn.disabled();
+          });
           setTimeout( () => {
             this.question();
           }, 1500);
