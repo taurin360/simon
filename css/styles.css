@@ -127,6 +127,7 @@ body {
   top: 86px;
   left: 86px;
   user-select: none;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
 }
 
 #center:active {
