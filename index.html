@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/styles.css">
+  <title>サイモン</title>
+</head>
+<body>
+  <main>
+    <div id="container">
+    </div>
+    <div id="comtent">
+      <p class="inactive" id="sentence">【遊び方】<br>「SIMON」ボタンを押します。任意の1個のボタンが光るので、そのボタンを押します。すると自動的に最初の1個のボタンと2個目の任意のボタンが順に光ります。順番どおりにボタンを押します。次に自動的に1個目、2個目、3個目のボタンが光るのでそのボタンを順番どおりに押します。設定回数までこれを繰り返します。途中で間違えたらGAME OVERとなり、目標回数に達したらあなたの勝ちです。</p>
+    </div>
+  </main>
+  <div id="pre">
+    <form>
+      <label for="max-num">目標回数を入れてね。<br>目標回数無しの場合は<br>規定値の5になるよ。<br>↓↓↓↓<br><input type="number" min = "1" size = "12" id = "max-num"></label>
+    </form>
+    <input type="submit" value="GAME START" id="start-btn">
+  </div>
+  <script src="js/main.js"></script>
+</body>
+</html>
