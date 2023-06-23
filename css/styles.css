@@ -53,6 +53,7 @@ body {
   border: 6px solid #f5f5f5;
   opacity: .2;
   user-select: none;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
 }
 
 #green {
@@ -128,13 +129,13 @@ body {
   user-select: none;
 }
 
-/* #center:active {
+#center:active {
   width: 86px;
   height: 86px;
   position: absolute;
   top: 90px;
   left: 88px;
-} */
+}
 
 #center.end,
 #center.complete {
