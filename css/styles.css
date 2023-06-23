@@ -128,13 +128,13 @@ body {
   user-select: none;
 }
 
-#center:active {
+/* #center:active {
   width: 86px;
   height: 86px;
   position: absolute;
   top: 90px;
   left: 88px;
-}
+} */
 
 #center.end,
 #center.complete {
