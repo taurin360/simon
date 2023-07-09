@@ -16,6 +16,19 @@
       });
     }
 
+    click() {
+      // 回答フェーズ以外はボタン押下無効
+      if (this.elemnt.classList.contains('disabled')) {
+        return;
+      }
+      this.main.clickCntUp();
+      this.main.check(this.colorNum);
+      // フラッシュはCSSの疑似クラスで制御している
+      this.sound.pause();
+      this.sound.currentTime = 0;
+      this.sound.play();
+    }
+
     getElement() {
       return this.elemnt;
     }
@@ -44,19 +57,6 @@
       this.sound.play();
     }
 
-    click() {
-      // 回答フェーズ以外はボタン押下無効
-      if (this.elemnt.classList.contains('disabled')) {
-        return;
-      }
-      this.main.clickCntUp();
-      this.main.check(this.colorNum);
-      // フラッシュはCSSの疑似クラスで制御している
-      this.sound.pause();
-      this.sound.currentTime = 0;
-      this.sound.play();
-    }
-
     disabled() {
       this.elemnt.classList.add('disabled');
     }
@@ -71,9 +71,7 @@
   // GEME全体の制御
   // -------------------------------------
   class Main {
-    constructor(maxNum, start) {
-      this.maxNum = maxNum;
-      this.start = start;
+    constructor() {
       this.cnt = 0;
       this.demoCnt = 0;
       this.clickCnt = 0;
@@ -89,19 +87,22 @@
           return;
         }
         this.center.classList.add('disabled');
-        this.start.setSentenceInactive();
-        this.start.setResultInactive();
-        this.start.setRecInactive();
+        this.sentence.classList.add('inactive');
+        this.countDisp.classList.remove('inactive');
+        this.countDisp.textContent = '0回';
+        this.rec.classList.remove('inactive');
+        this.rec.textContent = `最高記録は${this.getRec()}回です。`;
+        this.congratulation.pause();
         this.demo();
         setTimeout( () => {
           this.question();
-        }, 3000);
+          this.countDisplay();
+        }, 4000);
       });
     }
 
     setup() {
       const sound = ["audio/green.mp3", "audio/red.mp3", "audio/yellow.mp3", "audio/blue.mp3"];
-      this.winSound = new Audio("audio/win.mp3");
       this.gameOverSound = new Audio("audio/gameover.mp3");
       this.congratulation = new Audio("audio/congratulation.mp3");
 
@@ -121,37 +122,42 @@
       this.center.setAttribute("id", 'center');
       this.center.textContent = 'SIMON';
       container.appendChild(this.center);
+      // ルール説明
+      this.sentence = document.getElementById('sentence');
+      // カウント表示
+      this.countDisp = document.getElementById('count-disp');
+      this.countDisp.textContent = '0回';
+      this.countDisp.classList.add('inactive');
+      // 最高記録表示
+      this.rec = document.getElementById('rec');
+      this.rec.textContent = `最高記録は${this.getRec()}回です。`;
+      this.rec.classList.add('inactive');
     }
 
     demo() {
-      let cnt;
-      switch(this.demoCnt) {
-        case 2:
-        case 6:
-        case 10:
-          cnt = 3;
-          break;
-        case 3:
-        case 7:
-        case 11:
-          cnt = 2;
-          break;
-        default:
-          cnt = this.demoCnt % 4;
-      }
-      this.colorBtns[cnt].flashDemo();
-      this.colorBtns[cnt].flashSound();
+      const demoPtn = [0, 1, 3, 2, 0, 1, 3, 2, 0, 0, 1, 1, 2, 3, 0];
+      this.colorBtns[demoPtn[this.demoCnt]].flashDemo();
+      this.colorBtns[demoPtn[this.demoCnt]].flashSound();
       this.demoCnt++;
-      if (this.demoCnt <= 12) {
+      if (this.demoCnt < demoPtn.length) {
         setTimeout( () => {
           this.demo();
-        }, 100);
+        }, 200);
       }
     }
 
     getId(colorNum) {
       const id = ['green', 'red', 'yellow', 'blue'];
       return id[colorNum];
+    }
+
+    getRec() {
+      const KeyName = 'simoncnt';
+      if (localStorage.getItem(KeyName) === null) {
+        return 0;
+      } else {
+        return Number(localStorage.getItem(KeyName));
+      }
     }
 
     question() {
@@ -164,7 +170,7 @@
     }
 
     randomGenerate() {
-      // 0:green 1:red 2:yellow 3:blue
+      // 0:green 1:red 2:yellow 3:blue ボタンが光った回数を取り出し
       let colorNum = [0, 0, 0, 0];
       this.questions.forEach(question => {
         if (question === 0) {
@@ -177,51 +183,24 @@
           colorNum[3]++;
         }
       });
-
-      // 一度も光ってないボタンは強制的に光らせる
-      if (this.questions.length === 5) {
-        let cnt = undefined;
-        if (colorNum[0] === 0) {
-          cnt = 0;
-        } else if (colorNum[1] === 0) {
-          cnt = 1;
-        } else if (colorNum[2] === 0) {
-          cnt = 2;
-        } else if (colorNum[3] === 0) {
-          cnt = 3;
-        }
-        if (colorNum !== undefined) {
-          this.questions.push(cnt);
-          return;
-        }
-      }
-
       // 一定回数以上同じボタンが続くのは許容しない
-      let cnt;
-      if (this.questions.length >= 4) {
-        cnt = this.questions.length / 4 + 1;
-        let result = false;
-        let nowBtn;
-        while(result === false) {
-          nowBtn = Math.floor(Math.random() * 4);
-          if (colorNum[0] >= 2 && nowBtn === 0) {
-            continue;
-          } else if (colorNum[1] >= cnt && nowBtn === 1) {
-            continue;
-          } else if (colorNum[2] >= cnt && nowBtn === 2) {
-            continue;
-          } else if (colorNum[3] >= cnt && nowBtn === 3) {
-            continue;
-          } else {
-            result = true;
-          }
+      let cnt = Math.floor(this.questions.length / 4 + 1);
+      let result = false;
+      let nowBtn;
+      while(result === false) {
+        nowBtn = Math.floor(Math.random() * 4);
+        if (colorNum[0] >= cnt && nowBtn === 0) {
+          continue;
+        } else if (colorNum[1] >= cnt && nowBtn === 1) {
+          continue;
+        } else if (colorNum[2] >= cnt && nowBtn === 2) {
+          continue;
+        } else if (colorNum[3] >= cnt && nowBtn === 3) {
+          continue;
+        } else {
+          result = true;
         }
-        this.questions.push(nowBtn);
-        return;
       }
-
-      // 次のボタンはランダムに選ぶ
-      const nowBtn = Math.floor(Math.random() * 4);
       this.questions.push(nowBtn);
     }
 
@@ -246,146 +225,65 @@
       this.clickCnt++;
     }
 
-    // カラーボタンを押したときに呼ばれ、押し間違いと目標回数をチェックする
+    // カラーボタンを押したときに呼ばれ、押し間違いをチェックする
     check(colorNum) {
       // 押すボタンを間違えたとき終了
       if (this.questions[this.clickCnt - 1] !== colorNum) {
+        // 最後のボタン押下は無効
+        this.clickCnt -= 1;
         this.center.textContent = 'GAME OVER!'
         this.center.classList.add('end');
         this.gameOverSound.play();
-        // 到達回数を設定
-        this.arrivalCnt = this.clickCnt -1;
         setTimeout( () => {
           this.restart();
         }, 3000);
       // 全てのボタンを押した
       } else if (this.clickCnt === this.questions.length) {
-        // 目標回数達成のとき終了
-        if (this.clickCnt === this.maxNum) {
-          this.center.textContent = 'YOU WIN!'
-          this.center.classList.add('complete');
-          this.winSound.play();
-          // 到達回数を設定
-          this.arrivalCnt = this.clickCnt;
-          setTimeout( () => {
-            this.restart();
-          }, 3000);
+        // 出題中はカラーボタンは押せない
+        this.colorBtns.forEach(colorBtn => {
+          colorBtn.disabled();
+        });
         // 次の課題へ
-        } else {
-          this.colorBtns.forEach(colorBtn => {
-            colorBtn.disabled();
-          });
-          setTimeout( () => {
-            this.question();
-          }, 1500);
-        }
+        setTimeout( () => {
+          this.question();
+        }, 1500);
       }
+      // 最高到達回数を超えたら更新
+      if (this.arrivalCnt < this.clickCnt) {
+        this.arrivalCnt = this.clickCnt;
+        this.countDisplay();
+      }
+    }
+
+    countDisplay() {
+      this.countDisp.textContent = `${this.arrivalCnt}回`;
     }
 
     restart() {
       // 今回の到達回数がこれまでの最高回数を上回ればローカルストレージに保存する
-      const KeyName = 'simoncnt';
-      let num;
-      let recordStr = '';
-
-      this.start.setResultActive();
-      this.start.setRecActive();
-      if (localStorage.getItem(KeyName) === null) {
-        num = 0;
-      } else {
-        num = Number(localStorage.getItem(KeyName));
-      }
-
-      this.start.setResultTextCnt(`到達回数は${this.arrivalCnt}回です。`);
+      const num = this.getRec();
       if ( num < this.arrivalCnt) {
         // 最高回数を更新した
-        localStorage.setItem(KeyName, this.arrivalCnt);
-        this.start.setRecTextCnt('最高記録を更新しました！');
+        localStorage.setItem('simoncnt', this.arrivalCnt);
+        this.rec.textContent = '最高記録を更新しました！';
         this.congratulation.play();
       } else {
         // 最高回数に届かなかった
-        this.start.setRecTextCnt(`最高記録は${num}回です。`);
+        this.rec.textContent = `最高記録は${num}回です。`;
       }
 
       this.center.textContent = 'SIMON'
       this.center.classList.remove('end');
-      this.center.classList.remove('complete');
       this.cnt = 0;
       this.clickCnt = 0;
       this.demoCnt = 0;
       this.questions.length = 0;
+      this.arrivalCnt = 0;
       this.center.classList.remove('disabled')
     }
   }
 
-  // -------------------------------------
-  // 最初の目標回数設定画面
-  // -------------------------------------
-  class Start {
-    constructor() {
-      this.main = document.getElementById('container');
-      this.main.classList.add('inactive');
-
-      this.sentence = document.getElementById('sentence');
-      this.setSentenceInactive();
-
-      this.result = document.getElementById('result');
-      this.setResultInactive();
-
-      this.rec = document.getElementById('rec');
-      this.setRecInactive();
-
-      const start = document.getElementById('start-btn');
-      start.addEventListener('click', () => {
-        this.gameStart();
-      });
-    }
-
-    gameStart() {
-      const inputMaxNum = document.getElementById('max-num');
-      let maxNum = Number(inputMaxNum.value);
-      if (maxNum <= 0) {
-        // デフォルトは5
-        maxNum = 5;
-      }
-      const pre = document.getElementById('pre');
-      pre.classList.add('inactive');
-      this.main.classList.remove('inactive');
-      this.sentence.classList.remove('inactive');
-      new Main(maxNum, this);
-    }
-
-    setSentenceInactive() {
-      this.sentence.classList.add('inactive');
-    }
-
-    setResultActive() {
-      this.result.classList.remove('inactive');
-    }
-
-    setRecActive() {
-      this.rec.classList.remove('inactive');
-    }
-
-    setResultInactive() {
-      this.result.classList.add('inactive');
-    }
-
-    setRecInactive() {
-      this.rec.classList.add('inactive');
-    }
-
-    setResultTextCnt(char) {
-      this.result.textContent = char;
-    }
-
-    setRecTextCnt(char) {
-      this.rec.textContent = char;
-    }
-
-  }
-
-  new Start();
+  new Main();
 
 }
 

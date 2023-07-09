@@ -24,23 +24,8 @@ body {
   padding-right: 16px;
 }
 
-#pre {
-  width: 176px;
-  height: 176px;
-  background: #f5f5f5;
-  margin: 32px auto;
-  padding: 12px;
-  text-align: center;
-}
-
 #max-num {
   width: 92px;
-}
-
-#start-btn {
-  margin-top: 16px;
-  padding: 8px 4px;
-  border-radius: 8px;
 }
 
 #green,
@@ -138,8 +123,7 @@ body {
   left: 88px;
 }
 
-#center.end,
-#center.complete {
+#center.end {
   width: 236px;
   height: 236px;
   font-size: 24px;
@@ -148,7 +132,7 @@ body {
   left: 11px;
 }
 
-#result,
+#count-disp,
 #rec {
   height: 64px;
   line-height: 64px;
@@ -159,19 +143,15 @@ body {
   display: none;
 }
 
-#pre.inactive {
-  display: none;
-}
-
 #sentence.inactive {
   display: none;
 }
 
-#result.inactive {
+#rec.inactive {
   display: none;
 }
 
-#rec.inactive {
+#count-disp.inactive {
   display: none;
 }
 
